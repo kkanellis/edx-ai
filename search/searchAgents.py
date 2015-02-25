@@ -492,9 +492,38 @@ def foodHeuristic(state, problem):
     Subsequent calls to this heuristic can access
     problem.heuristicInfo['wallCount']
     """
-    position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    from util import manhattanDistance
+
+    (position, foodGrid) = state
+    walls = problem.walls
+
+    foodList = foodGrid.asList()
+    lenFoodList = len(foodList)
+
+    if lenFoodList == 0:
+        return 0
+    elif lenFoodList == 1:
+        return manhattanDistance(foodList[0], position)
+
+    maxDist = 0
+    point1 = point2 = position
+    for foodPosition in foodList:
+        dist = manhattanDistance(position, foodPosition)
+        if dist > maxDist:
+            maxDist = dist
+            point1 = foodPosition
+
+    maxDist = 0
+    for foodPosition in foodList:
+        dist = manhattanDistance(point1, foodPosition)
+        if dist > maxDist:
+            maxDist = dist
+            point2 = foodPosition
+
+    pointsDiff = manhattanDistance(point1, point2)
+
+    ans = min(manhattanDistance(point1, position), manhattanDistance(point2, position)) + pointsDiff
+    return ans
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -518,14 +547,15 @@ class ClosestDotSearchAgent(SearchAgent):
         Returns a path (a list of actions) to the closest dot, starting from
         gameState.
         """
+        from search import bfs
+
         # Here are some useful elements of the startState
         startPosition = gameState.getPacmanPosition()
         food = gameState.getFood()
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return bfs(problem)
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -560,8 +590,7 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         """
         x,y = state
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.food[x][y]
 
 def mazeDistance(point1, point2, gameState):
     """
