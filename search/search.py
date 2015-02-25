@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -86,18 +86,75 @@ def depthFirstSearch(problem):
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import Stack
+
+    fringe = Stack()
+    closed = set()
+    fringe.push( (problem.getStartState(), [ ]) )
+    while not fringe.isEmpty():
+        (state, actions) = fringe.pop()
+
+        if problem.isGoalState(state):
+            return actions
+
+        if state not in closed:
+            closed.add(state)
+
+            for (succ, action, _) in problem.getSuccessors(state):
+                new_actions = list(actions)
+                new_actions.append(action)
+                fringe.push( (succ, new_actions) )
+
+    return [ ]
+
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    from util import Queue
+
+    fringe = Queue()
+    closed = set()
+    fringe.push( (problem.getStartState(), [ ]) )
+    while not fringe.isEmpty():
+        (state, actions) = fringe.pop()
+
+        if problem.isGoalState(state):
+            return actions
+
+        if state not in closed:
+            closed.add(state)
+
+            for (succ, action, _) in problem.getSuccessors(state):
+                new_actions = list(actions)
+                new_actions.append(action)
+                fringe.push( (succ, new_actions) )
+
+    return [ ]
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import PriorityQueue
+
+    fringe = PriorityQueue()
+    closed = set()
+    fringe.push( (problem.getStartState(), [ ], 0), 0)
+    while not fringe.isEmpty():
+        (state, actions, b_cost) = fringe.pop()
+
+        if problem.isGoalState(state):
+            return actions
+
+        if state not in closed:
+            closed.add(state)
+
+            for (succ, action, cost) in problem.getSuccessors(state):
+                new_actions = list(actions)
+                new_actions.append(action)
+                new_cost = b_cost + cost
+                fringe.push( (succ, new_actions, new_cost), new_cost)
+
+    return [ ]
 
 def nullHeuristic(state, problem=None):
     """
@@ -108,9 +165,36 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import PriorityQueue
 
+    fringe = PriorityQueue()
+    closed = set()
+
+    start_state = problem.getStartState()
+    start_cost = heuristic(start_state, problem)
+    # (state, actions, backward_cost) P = estimated_cost
+    fringe.push( (start_state, [ ], 0), start_cost)
+    while not fringe.isEmpty():
+        (state, actions, b_cost) = fringe.pop()
+        #print state, b_cost
+
+        if problem.isGoalState(state):
+            return actions
+
+        if state not in closed:
+            closed.add(state)
+
+            for (next_state, action, cost) in problem.getSuccessors(state):
+                # Append next direction
+                new_actions = list(actions)
+                new_actions.append(action)
+
+                # Calculate new cost
+                new_backward_cost = b_cost + cost
+                new_estimated_cost = b_cost + cost + heuristic(next_state, problem)
+                fringe.push( (next_state, new_actions, new_backward_cost), new_estimated_cost)
+
+    return [ ]
 
 # Abbreviations
 bfs = breadthFirstSearch
