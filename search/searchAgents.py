@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -294,15 +294,13 @@ class CornersProblem(search.SearchProblem):
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return (self.startingPosition, 4*(False,))
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return (state[1] == 4*(True,))
 
     def getSuccessors(self, state):
         """
@@ -314,17 +312,32 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
+        currentPosition = state[0]
+        visitedCorners = state[1]
 
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
+            x,y = currentPosition
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
 
-            "*** YOUR CODE HERE ***"
+            if not self.walls[nextx][nexty]:
+                nextPosition = (nextx, nexty)
+                nextVisitedCorners = ()
+                # Check if we reached a corner
+                for (id, corner) in enumerate(self.corners):
+                    if visitedCorners[id] or (nextx, nexty) == corner:
+                        nextVisitedCorners += (True,)
+                        # If some dimension equals to 1 then this
+                        # can be executed multiple times
+                        #break
+                    else:
+                        nextVisitedCorners += (False,)
+
+                #print nextPosition, nextVisitedCorners
+                successors.append(((nextPosition, nextVisitedCorners), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
