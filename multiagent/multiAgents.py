@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -68,13 +68,46 @@ class ReflexAgent(Agent):
         """
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
-        newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
+        newPacmanPos = successorGameState.getPacmanPosition()
+        oldFoodPos = currentGameState.getFood().asList()
+        newFoodPos = successorGameState.getFood().asList()
         newGhostStates = successorGameState.getGhostStates()
-        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
-        "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        # CODE STARTS HERE
+
+        # Gather food statistics
+        foodLeft = len(newFoodPos)
+        oldFoodLeft = len(oldFoodPos)
+        foodDists = [ manhattanDistance(foodPos, newPacmanPos) for foodPos in newFoodPos ]
+
+        if foodLeft > 0:
+            minFoodDist = min(foodDists)
+        else:
+            minFoodDist = 0
+
+        dotEaten = (oldFoodLeft - foodLeft)
+
+        # Gather ghost statistics
+        newGhostPos = [nextGhostState.getPosition() for nextGhostState in newGhostStates]
+        ghostDists = [ manhattanDistance(ghostPos, newPacmanPos) for ghostPos in newGhostPos]
+
+        # Do magic calculations
+        res = 0
+        if min(ghostDists) <= 2:
+            res -= sum(map(self.inverse, ghostDists))
+
+        if dotEaten:
+            res += 100
+
+        res -= (minFoodDist)
+
+        return res
+
+    def inverse(self, x):
+        if x == 0:
+            return 1000
+        else:
+            return 200/x
 
 def scoreEvaluationFunction(currentGameState):
     """
