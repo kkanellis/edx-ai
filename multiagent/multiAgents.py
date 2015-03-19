@@ -167,8 +167,52 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.isLose():
             Returns whether or not the game state is a losing state
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        return self.maximize(gameState, 1, 0)[1]
+
+
+    def getNodeValue(self, gameState, currDepth, agentIndex):
+        # Check if game is a winning or loosing state
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+
+
+        # Check if more agents are available in the current layer
+        if agentIndex == gameState.getNumAgents():
+            # Reset agent to 0 (Pacman) & increase searched depth
+            agentIndex = 0
+            currDepth += 1
+
+            # Check if no more recursion is needed (self.depth is reached)
+            if currDepth > self.depth:
+                # Return the result of the evalution function
+                return self.evaluationFunction(gameState)
+
+        if agentIndex == 0:
+            return self.maximize(gameState, currDepth, agentIndex)[0]
+        else:
+            return self.minimize(gameState, currDepth, agentIndex)[0]
+
+    def getSuccessorValues(self, gameState, currDepth, agentIndex):
+        """ Returns a list of tuples (successorValue, actionUsed) """
+
+        legalActions = gameState.getLegalActions(agentIndex)
+        successorNodes = [ (gameState.generateSuccessor(agentIndex, action), action)
+                                for action in legalActions ]
+
+        return [ (self.getNodeValue(successor, currDepth, agentIndex + 1), action)
+                                for (successor, action) in successorNodes ]
+
+    def maximize(self, gameState, currDepth, agentIndex):
+        """ Maximizing agent """
+        successorValues = self.getSuccessorValues(gameState, currDepth, agentIndex)
+        return max(successorValues)
+
+
+    def minimize(self, gameState, currDepth, agentIndex):
+        """ Minimizing agent """
+        successorValues = self.getSuccessorValues(gameState, currDepth, agentIndex)
+        return min(successorValues)
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
