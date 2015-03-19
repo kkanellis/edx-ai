@@ -315,8 +315,51 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.maximize(gameState, 1, 0)[1]
+
+    def getNodeValue(self, gameState, currDepth, agentIndex):
+        # Check if game is a winning or loosing state
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+
+
+        # Check if more agents are available in the current layer
+        if agentIndex == gameState.getNumAgents():
+            # Reset agent to 0 (Pacman) & increase searched depth
+            agentIndex = 0
+            currDepth += 1
+
+            # Check if no more recursion is needed (self.depth is reached)
+            if currDepth > self.depth:
+                # Return the result of the evalution function
+                return self.evaluationFunction(gameState)
+
+        if agentIndex == 0:
+            return self.maximize(gameState, currDepth, agentIndex)[0]
+        else:
+            return self.average(gameState, currDepth, agentIndex)
+
+    def getSuccessorValues(self, gameState, currDepth, agentIndex):
+        """ Returns a list of tuples (successorValue, actionUsed) """
+
+        legalActions = gameState.getLegalActions(agentIndex)
+        successorNodes = [ (gameState.generateSuccessor(agentIndex, action), action)
+                                for action in legalActions ]
+
+        return [ (self.getNodeValue(successor, currDepth, agentIndex + 1), action)
+                                for (successor, action) in successorNodes ]
+
+    def maximize(self, gameState, currDepth, agentIndex):
+        """ Maximizing agent. Returns (maxSuccessorValue, actionUsed) """
+        successorValues = self.getSuccessorValues(gameState, currDepth, agentIndex)
+        return max(successorValues)
+
+
+    def average(self, gameState, currDepth, agentIndex):
+        """ Expected agent. Returns float (expectedValue) """
+        successorValues = [ value[0] for value in self.getSuccessorValues(gameState, currDepth, agentIndex)]
+        return sum(successorValues) / len(successorValues)
+
 
 def betterEvaluationFunction(currentGameState):
     """
