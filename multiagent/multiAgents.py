@@ -219,12 +219,89 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
       Your minimax agent with alpha-beta pruning (question 3)
     """
 
+    NO_ACTION = 'NO_ACTION'
+    NODE_MIN = -(1e9)
+    NODE_MAX =  (1e9)
+
     def getAction(self, gameState):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.maximize(gameState, 1, 0, self.NODE_MIN, self.NODE_MAX)[1]
+
+    def getNodeValue(self, gameState, currDepth, agentIndex, alpha, beta):
+        # Check if game is a winning or loosing state
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+
+        # Check if more agents are available in the current layer
+        if agentIndex == gameState.getNumAgents():
+            # Reset agent to 0 (Pacman) & increase searched depth
+            agentIndex = 0
+            currDepth += 1
+
+            # Check if no more recursion is needed (self.depth is reached)
+            if currDepth > self.depth:
+                # Return the result of the evalution function
+                return self.evaluationFunction(gameState)
+
+        if agentIndex == 0:
+            # Agent is Pacman!
+            return self.maximize(gameState, currDepth, agentIndex, alpha, beta)[0]
+        else:
+            # Agent is Ghost
+            return self.minimize(gameState, currDepth, agentIndex, alpha, beta)[0]
+
+    def maximize(self, gameState, currDepth, agentIndex, alpha, beta):
+        """ Maximizing agent. Returns tuple (maxNodeValue, actionUsed) """
+
+        legalActions = gameState.getLegalActions(agentIndex)
+
+        # Use first successor to initialize the current nodeValue
+        nodeValue = self.NODE_MIN
+        bestAction = self.NO_ACTION
+
+        # Recursively loop through the remaining successors
+        for action in legalActions:
+            successor = gameState.generateSuccessor(agentIndex, action)
+            successorValue = self.getNodeValue(successor, currDepth, agentIndex + 1, alpha, beta)
+            if successorValue > nodeValue:
+                nodeValue = successorValue
+                bestAction = action
+
+            # Check if we can prune. NOTE: MAXimizing agent -> check beta!
+            if nodeValue > beta:
+                break
+
+            # MAXimizing agent -> update alpha!
+            alpha = max(alpha, nodeValue)
+
+        return (nodeValue, bestAction)
+
+    def minimize(self, gameState, currDepth, agentIndex, alpha, beta):
+        """ Minimizing agent. Returns tuple (minNodeValue, actionUsed) """
+
+        legalActions = gameState.getLegalActions(agentIndex)
+
+        nodeValue = self.NODE_MAX
+        bestAction = self.NO_ACTION
+
+        # Recursively loop through the remaining successors
+        for action in legalActions:
+            successor = gameState.generateSuccessor(agentIndex, action)
+            successorValue = self.getNodeValue(successor, currDepth, agentIndex + 1, alpha, beta)
+            if successorValue < nodeValue:
+                nodeValue = successorValue
+                bestAction = action
+
+            # Check if we can prune. NOTE: MINimizing agent -> check alpha!
+            if nodeValue < alpha:
+                break
+
+            # MINimizing agent -> update beta!
+            beta = min(beta, nodeValue)
+
+        return (nodeValue, bestAction)
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
