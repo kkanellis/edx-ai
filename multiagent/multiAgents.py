@@ -352,13 +352,17 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     def maximize(self, gameState, currDepth, agentIndex):
         """ Maximizing agent. Returns (maxSuccessorValue, actionUsed) """
         successorValues = self.getSuccessorValues(gameState, currDepth, agentIndex)
-        return max(successorValues)
+        maxValue = max(successorValues)[0]
+
+        equalBest = [ action for (value, action) in successorValues if value == maxValue ]
+        randSelection = random.randint(0, len(equalBest) - 1)
+        return (maxValue, equalBest[randSelection])
 
 
     def average(self, gameState, currDepth, agentIndex):
         """ Expected agent. Returns float (expectedValue) """
         successorValues = [ value[0] for value in self.getSuccessorValues(gameState, currDepth, agentIndex)]
-        return sum(successorValues) / len(successorValues)
+        return sum(successorValues) * 1.0 / len(successorValues)
 
 
 def betterEvaluationFunction(currentGameState):
@@ -368,8 +372,53 @@ def betterEvaluationFunction(currentGameState):
 
       DESCRIPTION: <write something here so we know what you did>
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    ghostStates = currentGameState.getGhostStates()
+    pacmanPos = currentGameState.getPacmanPosition()
+
+    if currentGameState.isWin():
+        return 10e9
+    elif currentGameState.isLose():
+        return -10e9
+
+    # Calculate food stats
+    # *************************************************************
+    allFoodGrid = currentGameState.getFood()
+    foodCount = currentGameState.getNumFood()
+
+    # FoodPellets left
+    gridSize = allFoodGrid.width * allFoodGrid.height
+    foodLeftScore = 100.0 * (gridSize - foodCount) / gridSize
+
+    # Closest pellet
+    foodList = allFoodGrid.asList()
+    closestFoodPellet = min( manhattanDistance(pacmanPos, foodPos) for foodPos in foodList )
+    #maxGridDist = allFoodGrid.width + allFoodGrid.height
+
+    #walls = currentGameState.getWalls()
+    #closestFoodPelletDist = closestFoodPellet[0] + calcWallPenalty(walls, pacmanPos, closestFoodPellet[1])
+    # **************************************************************
+
+    #ghostPos = [ghostState.getPosition() for ghostState in ghostStates]
+    #ghostDists = [ manhattanDistance(ghostPos, pacmanPos) for ghostPos in ghostPos]
+
+    totalScore = -closestFoodPellet + 10e5*currentGameState.getScore()
+    #print '%s: %5f %5f %5f-> %f ' % (pacmanPos, foodLeftScore, foodClosestScore, currentScore, totalScore)
+
+    return totalScore
+
+def calcWallPenalty(walls, pacmanPos, pelletPos):
+    penalty = 0
+    for x in range(min(pacmanPos[0], pelletPos[0]), max(pacmanPos[0], pelletPos[0])):
+        if (x, pacmanPos[1]) in walls or (x, pelletPos[1]) in walls:
+            penalty += 1
+
+    for y in range(min(pacmanPos[1], pelletPos[1]), max(pacmanPos[1], pelletPos[1])):
+        if (pacmanPos[0], y) in walls or (pelletPos[0], y) in walls:
+            penalty += 1
+
+    return penalty
+
+
 
 # Abbreviation
 better = betterEvaluationFunction
