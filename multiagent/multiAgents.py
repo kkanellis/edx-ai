@@ -387,21 +387,25 @@ def betterEvaluationFunction(currentGameState):
 
     # FoodPellets left
     gridSize = allFoodGrid.width * allFoodGrid.height
-    foodLeftScore = 100.0 * (gridSize - foodCount) / gridSize
+    foodLeftScore = (gridSize - foodCount) / gridSize
 
     # Closest pellet
     foodList = allFoodGrid.asList()
     closestFoodPellet = min( manhattanDistance(pacmanPos, foodPos) for foodPos in foodList )
-    #maxGridDist = allFoodGrid.width + allFoodGrid.height
+
+    # Capsules
+    capsulesLeft = len(currentGameState.getCapsules())
 
     #walls = currentGameState.getWalls()
     #closestFoodPelletDist = closestFoodPellet[0] + calcWallPenalty(walls, pacmanPos, closestFoodPellet[1])
     # **************************************************************
 
-    #ghostPos = [ghostState.getPosition() for ghostState in ghostStates]
-    #ghostDists = [ manhattanDistance(ghostPos, pacmanPos) for ghostPos in ghostPos]
+    totalFoodDist = 0
+    for pellet in foodList:
+        totalFoodDist += sum( [manhattanDistance(pellet, _pellet) for _pellet in foodList ])
+    totalFoodDist /= 2
 
-    totalScore = -closestFoodPellet + 10e5*currentGameState.getScore()
+    totalScore = -closestFoodPellet -100*capsulesLeft + 100*foodLeftScore -0.1*totalFoodDist + currentGameState.getScore()
     #print '%s: %5f %5f %5f-> %f ' % (pacmanPos, foodLeftScore, foodClosestScore, currentScore, totalScore)
 
     return totalScore
