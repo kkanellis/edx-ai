@@ -405,7 +405,7 @@ def betterEvaluationFunction(currentGameState):
         totalFoodDist += sum( [manhattanDistance(pellet, _pellet) for _pellet in foodList ])
     totalFoodDist /= 2
 
-    totalScore = -closestFoodPellet -100*capsulesLeft + 100*foodLeftScore -0.1*totalFoodDist + currentGameState.getScore()
+    totalScore = -closestFoodPellet -50*capsulesLeft + 100*foodLeftScore + 2*currentGameState.getScore()
     #print '%s: %5f %5f %5f-> %f ' % (pacmanPos, foodLeftScore, foodClosestScore, currentScore, totalScore)
 
     return totalScore
